@@ -1,39 +1,88 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                String @id @default(uuid())
-  name              String
-  email             String @unique
-  invoices          Invoice[] @relation("UserInvoices")
+enum Role {
+  PROPRIETAIRE
+  VENDEUR
+  CAISSIER
 }
 
+enum MovementType {
+  ENTRY       // Entrée en stock
+  EXIT        // Sortie de stock
+  ADJUSTMENT  // Ajustement
+}
 
+model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  role       Role      @default(VENDEUR)
+  shopId     String?
+  shop       Shop?     @relation("ShopMembers", fields: [shopId], references: [id])
+  shopsOwned Shop[]    @relation("ShopOwner")
+  invoices   Invoice[] @relation("UserInvoices")
+}
+
+model Shop {
+  id            String          @id @default(uuid())
+  name          String
+  address       String
+  phone         String
+  ninea         String          @unique
+  ownerId       String
+  owner         User            @relation("ShopOwner", fields: [ownerId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  invoices      Invoice[]
+  users         User[]          @relation("ShopMembers")
+  categories    Category[]
+  products      Product[]
+  stockMovements StockMovement[]
+}
 
 model Invoice {
-  id            String        @id
-  name          String
-  issuerName    String        @default("")
-  issuerAddress String        @default("")
-  clientName    String        @default("")
-  clientAddress String        @default("")
-  invoiceDate   String        @default("")
-  dueDate       String        @default("")
-  vatActive     Boolean       @default(false)
-  vatRate       Float         @default(20)
-  status        Int           @default(1)
-  lines         InvoiceLine[] @relation("InvoiceLines")
-  userId        String
-  createdById   User          @relation("UserInvoices", fields: [userId], references: [id])
+  id              String            @id
+  name            String
+  issuerName      String            @default("")
+  issuerAddress   String            @default("")
+  clientName      String            @default("")
+  clientAddress   String            @default("")
+  invoiceDate     String            @default("")
+  dueDate         String            @default("")
+  vatActive       Boolean           @default(false)
+  vatRate         Float             @default(20)
+  status          Int               @default(1)
+    updatedAt     DateTime      @updatedAt
+  createdAt     DateTime      @default(now())
+  lines           InvoiceLine[]     @relation("InvoiceLines")
+  userId          String
+  createdById     User              @relation("UserInvoices", fields: [userId], references: [id])
+  shopId          String
+  shop            Shop              @relation(fields: [shopId], references: [id])
+  paidAmount      Float?            @default(0)
+  receivedAmount  Float?
+  changeGiven     Float?
+  paymentMethod   String?
+  payments        InvoicePayment[]  // ✅ Paiements multiples
+}
+
+model InvoicePayment {
+  id             String   @id @default(uuid())
+  invoiceId      String
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id])
+  amount         Float
+  method         String
+  receivedAt     DateTime @default(now())
+  receivedAmount Float     // ✅ Ajouté
+  changeGiven    Float     // ✅ Ajouté
+ 
 }
 
 model InvoiceLine {
@@ -42,6 +91,45 @@ model InvoiceLine {
   quantity    Int      @default(0)
   unitPrice   Float    @default(0)
   invoiceId   String?
+   updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
   invoice     Invoice? @relation("InvoiceLines", fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
 }
 
+model Category {
+  id       String    @id @default(uuid())
+  name     String
+  shopId   String
+  shop     Shop      @relation(fields: [shopId], references: [id])
+  products Product[]
+}
+
+model Product {
+  id           String          @id @default(uuid())
+  name         String
+  price        Float
+  quantity     Int             @default(0)
+  imageUrl     String?
+  barcode      String?         @unique
+  categoryId   String
+  category     Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  shopId       String
+  shop         Shop            @relation(fields: [shopId], references: [id])
+  movements    StockMovement[]
+  invoiceLines InvoiceLine[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model StockMovement {
+  id        String       @id @default(uuid())
+  type      MovementType
+  quantity  Int
+  shopId    String?
+  shop      Shop?        @relation(fields: [shopId], references: [id])
+  productId String
+  product   Product      @relation(fields: [productId], references: [id])
+  createdAt DateTime     @default(now())
+}

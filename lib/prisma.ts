@@ -1,15 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient()
+// Déclaration pour TypeScript (évite les erreurs de type)
+declare global {
+  var prisma: PrismaClient | undefined;
 }
 
-declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
+// Initialisation optimisée du client
+const prisma = globalThis.prisma || new PrismaClient({
+  log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"]
+});
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+// Conservation de l'instance en développement seulement
+if (process.env.NODE_ENV === "development") {
+  globalThis.prisma = prisma;
+}
 
-export default prisma
-
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+export default prisma;

@@ -1,56 +1,37 @@
-import type { Config } from "tailwindcss";
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
 
-export default {
+const config: Config = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
+        primary: "#C2942D",     // Jaune ocre
+        secondary: "#1A1A1A",   // Noir/bleu très foncé
+        background: "#FFFFFF",  // Blanc
+      }
     },
   },
-  plugins: [
-    require('daisyui'),
-  ],
+  plugins: [require("daisyui")],
   daisyui: {
     themes: [
-      "light",
-      "dark",
-      "cupcake",
-      "bumblebee",
-      "emerald",
-      "corporate",
-      "synthwave",
-      "retro",
-      "cyberpunk",
-      "valentine",
-      "halloween",
-      "garden",
-      "forest",
-      "aqua",
-      "lofi",
-      "pastel",
-      "fantasy",
-      "wireframe",
-      "black",
-      "luxury",
-      "dracula",
-      "cmyk",
-      "autumn",
-      "business",
-      "acid",
-      "lemonade",
-      "night",
-      "coffee",
-      "winter",
-      "dim",
-      "nord",
-      "sunset",
+      {
+        activesolution: {
+          "primary": "#a8780c",
+          "secondary": "#1A1A1A",
+          "accent": "#a8780c",
+          "neutral": "#1A1A1A",
+          "base-100": "#FFFFFF",
+          "info": "#60A5FA",
+          "success": "#22C55E",
+          "warning": "#EAB308",
+          "error": "#EF4444",
+        },
+      },
     ],
   },
-} satisfies Config;
+}
+export default config
