@@ -24,6 +24,7 @@ import {
   createCategory,
   getCategoriesByShop,
 } from "@/app/actions";
+ import Image from "next/image";
 import AppShell from "@/app/components/AppShell";
 
 const emptyProduct: Product = {
@@ -39,6 +40,11 @@ const emptyProduct: Product = {
   updatedAt: new Date(),
   category: { id: "", name: "", shopId: "" },
 };
+type Category = {
+  id: string;
+  name: string;
+  shopId: string;
+};
 
 export default function ProductsPage() {
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
@@ -47,12 +53,16 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [productDialog, setProductDialog] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  
   const [globalFilter, setGlobalFilter] = useState<string>("");
-  const [categories, setCategories] = useState<any[]>([]);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const [categoryDialog, setCategoryDialog] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [product, setProduct] = useState<Product>(emptyProduct);
   const [imageFile, setImageFile] = useState<File | null>(null);
+
 
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<Product[]>>(null);
@@ -87,65 +97,65 @@ export default function ProductsPage() {
   };
 
   const saveProduct = async () => {
-    if (!product.name.trim()) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Erreur",
-        detail: "Le nom du produit est requis",
-        life: 3000,
+  if (!product.name.trim()) {
+    toast.current?.show({
+      severity: "error",
+      summary: "Erreur",
+      detail: "Le nom du produit est requis",
+      life: 3000,
+    });
+    return;
+  }
+
+  try {
+    let imageUrl = product.imageUrl;
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      formData.append("upload_preset", "product_photos");
+
+      const response = await fetch("https://api.cloudinary.com/v1_1/dlebhesqu/image/upload", {
+        method: "POST",
+        body: formData,
       });
-      return;
+
+      const data = await response.json();
+      imageUrl = data.secure_url;
     }
 
-    try {
-      let imageUrl = product.imageUrl;
-
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-        formData.append("upload_preset", "product_photos");
-
-        const response = await fetch("https://api.cloudinary.com/v1_1/dlebhesqu/image/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-        imageUrl = data.secure_url;
-      }
-
-      if (!product.id) {
-        await createProduct({
-          name: product.name,
-          price: product.price,
-          quantity: product.quantity,
-          imageUrl: imageUrl ?? undefined,
-          barcode: product.barcode || undefined,
-          categoryId: product.categoryId,
-          shopId: product.shopId,
-        });
-      } else {
-        await updateProduct(product.id, {
-          name: product.name,
-          price: product.price,
-         
-          imageUrl: imageUrl ?? undefined,
-          barcode: product.barcode || undefined,
-          categoryId: product.categoryId,
-        });
-      }
-
-      toast.current?.show({
-        severity: "success",
-        summary: "Succès",
-        detail: product.id ? "Produit modifié" : "Produit ajouté",
-        life: 3000,
+    if (!product.id) {
+      await createProduct({
+        name: product.name,
+        price: product.price,
+        quantity: product.quantity,
+        imageUrl: imageUrl ?? undefined,
+        barcode: product.barcode || undefined,
+        categoryId: product.categoryId,
+        shopId: product.shopId,
       });
+    } else {
+      await updateProduct(product.id, {
+        name: product.name,
+        price: product.price,
+        imageUrl: imageUrl ?? undefined,
+        barcode: product.barcode || undefined,
+        categoryId: product.categoryId,
+      });
+    }
 
-      setRefreshKey((prev) => prev + 1);
-      setProductDialog(false);
-      setImageFile(null);
-    } catch (err: any) {
+    toast.current?.show({
+      severity: "success",
+      summary: "Succès",
+      detail: product.id ? "Produit modifié" : "Produit ajouté",
+      life: 3000,
+    });
+
+    setRefreshKey((prev) => prev + 1);
+    setProductDialog(false);
+    setImageFile(null);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
       toast.current?.show({
         severity: "error",
         summary: "Erreur",
@@ -153,7 +163,8 @@ export default function ProductsPage() {
         life: 5000,
       });
     }
-  };
+  }
+};
 
   const deleteProduct = async (product: Product) => {
     try {
@@ -165,14 +176,16 @@ export default function ProductsPage() {
         life: 3000 
       });
       setRefreshKey((prev) => prev + 1);
-    } catch (err: any) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Erreur",
-        detail: err.message || "Échec de la suppression",
-        life: 5000,
-      });
-    }
+    } catch (err: unknown) {
+  if (err instanceof Error) {
+    toast.current?.show({
+      severity: "error",
+      summary: "Erreur",
+      detail: err.message || "Échec de la suppression",
+      life: 5000,
+    });
+  }
+}
   };
 
   const actionBodyTemplate = (rowData: Product) => (
@@ -224,11 +237,16 @@ export default function ProductsPage() {
 
   const imageBodyTemplate = (rowData: Product) => (
     rowData.imageUrl ? (
-      <img 
-        src={rowData.imageUrl} 
-        alt={rowData.name} 
-        className="w-12 h-12 rounded-lg shadow-md object-cover border" 
-      />
+   
+
+<Image
+  src={rowData.imageUrl}
+  alt={rowData.name}
+  width={48}
+  height={48}
+  className="rounded-lg shadow-md object-cover border"
+/>
+
     ) : (
       <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
         <i className="pi pi-image text-gray-400" />
@@ -415,15 +433,17 @@ export default function ProductsPage() {
               onSelect={(e) => setImageFile(e.files[0])}
               auto
             />
-            {(imageFile || product.imageUrl) && (
-              <div className="mt-3">
-                <img
-                  src={imageFile ? URL.createObjectURL(imageFile) : product.imageUrl || ''}
-                  alt="Preview"
-                  className="w-32 h-32 object-cover rounded-lg border"
-                />
-              </div>
-            )}
+           {(imageFile || product.imageUrl) && (
+  <>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img
+      src={imageFile ? URL.createObjectURL(imageFile) : product.imageUrl || ''}
+      alt="Preview"
+      className="w-32 h-32 object-cover rounded-lg border"
+    />
+  </>
+)}
+
           </div>
 
           <div className="field col-12">
@@ -482,33 +502,36 @@ export default function ProductsPage() {
             onClick={() => setCategoryDialog(false)}
             className="p-button-text"
           />
-          <Button
-            label="Ajouter"
-            icon="pi pi-check"
-            onClick={async () => {
-              if (newCategoryName.trim() && selectedShop) {
-                try {
-                  const newCat = await createCategory({ name: newCategoryName, shopId: selectedShop });
-                  setCategories((prev) => [...prev, newCat]);
-                  setProduct((prev) => ({ ...prev, categoryId: newCat.id }));
-                  toast.current?.show({ 
-                    severity: "success", 
-                    summary: "Succès", 
-                    detail: "Catégorie ajoutée",
-                    life: 3000
-                  });
-                  setNewCategoryName("");
-                  setCategoryDialog(false);
-                } catch (err: any) {
-                  toast.current?.show({ 
-                    severity: "error", 
-                    summary: "Erreur", 
-                    detail: err.message || "Échec de la création",
-                    life: 5000
-                  });
-                }
-              }
-            }}
+         <Button
+  label="Ajouter"
+  icon="pi pi-check"
+  onClick={async () => {
+    if (newCategoryName.trim() && selectedShop) {
+      try {
+        const newCat = await createCategory({ name: newCategoryName, shopId: selectedShop });
+        setCategories((prev) => [...prev, newCat]);
+        setProduct((prev) => ({ ...prev, categoryId: newCat.id }));
+        toast.current?.show({ 
+          severity: "success", 
+          summary: "Succès", 
+          detail: "Catégorie ajoutée",
+          life: 3000
+        });
+        setNewCategoryName("");
+        setCategoryDialog(false);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.current?.show({ 
+            severity: "error", 
+            summary: "Erreur", 
+            detail: err.message || "Échec de la création",
+            life: 5000
+          });
+        }
+      }
+    }
+  }}
+
             className="p-button-success"
             disabled={!newCategoryName.trim()}
           />

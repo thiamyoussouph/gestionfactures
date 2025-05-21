@@ -1,27 +1,36 @@
-"use client"
-import { getShopsByEmail } from "@/app/actions"
-import { useUser } from "@clerk/nextjs"
-import { useEffect, useState } from "react"
-import Link from "next/link"
+"use client";
+import { getShopsByEmail } from "@/app/actions";
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+// ✅ Type propre pour les boutiques
+interface Shop {
+  id: string;
+  name: string;
+  ninea?: string;
+  address?: string;
+  phone?: string;
+}
 
 export default function ShopList() {
-  const { user } = useUser()
-  const [shops, setShops] = useState<any[]>([])
+  const { user } = useUser();
+  const [shops, setShops] = useState<Shop[]>([]); // ✅ corrigé ici
 
   useEffect(() => {
     const loadShops = async () => {
       if (user?.primaryEmailAddress?.emailAddress) {
-        const userShops = await getShopsByEmail(user.primaryEmailAddress.emailAddress)
-        setShops(userShops)
+        const userShops = await getShopsByEmail(user.primaryEmailAddress.emailAddress);
+        setShops(userShops);
       }
-    }
-    loadShops()
-  }, [user])
+    };
+    loadShops();
+  }, [user]);
 
   return (
     <div className="mt-6">
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {shops.map(shop => (
+        {shops.map((shop) => (
           <div key={shop.id} className="card bg-base-100 shadow">
             <div className="card-body">
               <h3 className="card-title">{shop.name}</h3>
@@ -40,5 +49,5 @@ export default function ShopList() {
         ))}
       </div>
     </div>
-  )
+  );
 }

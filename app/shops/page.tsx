@@ -6,7 +6,8 @@ import { useState } from 'react'
 
 export default function ShopPage() {
   const [selectedShop, setSelectedShop] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+ const [refreshKey] = useState(0);
+
 
   return (
     <AppShell

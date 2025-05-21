@@ -52,18 +52,20 @@ export default function ShopModalForm({
     setError("")
 
     try {
-      if (mode === "create") {
-        await createShop({ ...formData, userEmail })
-      } else if (mode === "edit" && shopId) {
-        await updateShop(shopId, formData)
-      }
-      onSuccess?.()
-      onClose?.()
-    } catch (err) {
-      setError("Erreur lors de l'enregistrement.")
-    } finally {
-      setIsLoading(false)
-    }
+  if (mode === "create") {
+    await createShop({ ...formData, userEmail });
+  } else if (mode === "edit" && shopId) {
+    await updateShop(shopId, formData);
+  }
+  onSuccess?.();
+  onClose?.();
+} catch (err) {
+  console.error("Erreur lors de la soumission :", err); // ✅ log utile
+  setError("Erreur lors de l'enregistrement.");
+} finally {
+  setIsLoading(false);
+}
+
   }
 
   return (

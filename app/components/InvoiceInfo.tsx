@@ -1,3 +1,5 @@
+"use client";
+
 import { Invoice } from '@/type';
 import React, { useEffect } from 'react';
 
@@ -18,7 +20,7 @@ const InvoiceInfo: React.FC<Props> = ({ invoice, setInvoice }) => {
         setInvoice({ ...invoice, ...updates });
       }
     }
-  }, [invoice?.shop]);
+  }, [invoice, setInvoice]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -30,14 +32,14 @@ const InvoiceInfo: React.FC<Props> = ({ invoice, setInvoice }) => {
   return (
     <div className='flex flex-col h-fit bg-base-200 p-5 rounded-xl mb-4 md:mb-0'>
       <div className='space-y-4'>
-        {/* Section Émetteur */}
+        {/* Émetteur */}
         <div className="space-y-2">
           <h2 className='badge badge-accent'>Émetteur</h2>
 
           <input
             type="text"
             value={invoice?.issuerName || ''}
-            placeholder="Nom de l'entreprise émettrice"
+            placeholder="Nom de l’entreprise émettrice"
             className='input input-bordered w-full'
             required
             onChange={(e) => handleInputChange(e, 'issuerName')}
@@ -45,13 +47,12 @@ const InvoiceInfo: React.FC<Props> = ({ invoice, setInvoice }) => {
 
           <textarea
             value={invoice?.issuerAddress || ''}
-            placeholder="Adresse de l'entreprise émettrice"
+            placeholder="Adresse de l’entreprise émettrice"
             className='textarea textarea-bordered w-full h-32'
             required
             onChange={(e) => handleInputChange(e, 'issuerAddress')}
           />
 
-          {/* ✅ Champs en lecture seule */}
           {invoice?.shop && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <input
@@ -70,7 +71,7 @@ const InvoiceInfo: React.FC<Props> = ({ invoice, setInvoice }) => {
           )}
         </div>
 
-        {/* Section Client */}
+        {/* Client */}
         <div className="space-y-2">
           <h2 className='badge badge-accent'>Client</h2>
           <input
@@ -105,7 +106,7 @@ const InvoiceInfo: React.FC<Props> = ({ invoice, setInvoice }) => {
           </div>
 
           <div className="space-y-2">
-            <h2 className='badge badge-accent'>Date d'échéance</h2>
+            <h2 className='badge badge-accent'>Date d’échéance</h2>
             <input
               type="date"
               value={invoice?.dueDate || ''}

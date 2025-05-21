@@ -18,7 +18,7 @@ const InvoiceLines: React.FC<Props> = ({ invoice, setInvoice }) => {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [barcodeInput, setBarcodeInput] = useState<string>('')
-const [refreshFlag, setRefreshFlag] = useState(0);
+
 
   useEffect(() => {
     fetch('/api/products')
@@ -34,7 +34,9 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
       quantity: 1,
       unitPrice: 0,
       invoiceId: invoice.id,
-      productId: ''
+      productId: '',
+      createdAt: new Date(),
+     updatedAt: new Date()
     }
     setInvoice({ ...invoice, lines: [...invoice.lines, newLine] })
   }
@@ -44,11 +46,7 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
     setInvoice({ ...invoice, lines: updatedLines })
   }
 
-  const handleDescriptionChange = (index: number, value: string) => {
-    const updatedLines = [...invoice.lines]
-    updatedLines[index].description = value
-    setInvoice({ ...invoice, lines: updatedLines })
-  }
+  
 
   const handleQuantityChange = (index: number, value: string) => {
     const updatedLines = [...invoice.lines]
@@ -89,6 +87,7 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
     updatedLines[existingIndex].quantity += 1;
   } else {
     // Produit pas encore présent → on l'ajoute
+    const now = new Date();
     const newLine: InvoiceLine & { productId: string } = {
       id: crypto.randomUUID(),
       description: found.name,
@@ -96,6 +95,8 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
       unitPrice: found.price,
       invoiceId: invoice.id,
       productId: found.id,
+      createdAt: now,
+       updatedAt: now,
     };
     updatedLines.push(newLine);
   }
@@ -104,10 +105,7 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   setBarcodeInput('');
 }
 
-const handlePaid = () => {
-  // Optionnel : tu peux afficher un message ou rafraîchir les données
-  alert("Paiement enregistré avec succès")
-}
+
 
   return (
     <div className="h-fit bg-base-200 p-5 rounded-xl w-full">

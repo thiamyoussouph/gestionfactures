@@ -1,49 +1,56 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { getShopsByEmail, deleteShopById } from "@/app/actions"
-import { useUser } from "@clerk/nextjs"
-import Link from "next/link"
-import { Building2, Edit, Trash2, Plus } from "lucide-react"
-import ShopModalForm from '@/app/components/ShopModalForm'
+import { useEffect, useState } from "react";
+import { getShopsByEmail, deleteShopById } from "@/app/actions";
+import { useUser } from "@clerk/nextjs";
+import { Building2, Edit, Trash2, Plus } from "lucide-react";
+import ShopModalForm from "@/app/components/ShopModalForm";
 
+// ✅ Type boutique simplifié (à adapter si tu as un type Shop dans ton projet)
+interface Shop {
+  id: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  ninea?: string;
+}
 
 export default function MyShopList() {
-  const { user } = useUser()
-  const [shops, setShops] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [editingShopId, setEditingShopId] = useState<string | null>(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
+  const { user } = useUser();
+  const [shops, setShops] = useState<Shop[]>([]); // ✅ plus de `any`
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingShopId, setEditingShopId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     const fetchShops = async () => {
       if (user?.primaryEmailAddress?.emailAddress) {
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-          const userShops = await getShopsByEmail(user.primaryEmailAddress.emailAddress)
-          setShops(userShops)
+          const userShops = await getShopsByEmail(user.primaryEmailAddress.emailAddress);
+          setShops(userShops);
         } catch (error) {
-          console.error("Erreur lors du chargement des boutiques", error)
+          console.error("Erreur lors du chargement des boutiques", error);
         } finally {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
-    }
-    fetchShops()
-  }, [user])
+    };
+    fetchShops();
+  }, [user]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer cette boutique ?")) {
       try {
-        await deleteShopById(id)
-        setShops(prev => prev.filter(shop => shop.id !== id))
+        await deleteShopById(id);
+        setShops((prev) => prev.filter((shop) => shop.id !== id));
       } catch (error) {
-        console.error("Erreur lors de la suppression de la boutique", error)
+        console.error("Erreur lors de la suppression de la boutique", error);
       }
     }
-  }
+  };
 
-  const email = user?.primaryEmailAddress?.emailAddress || ""
+  const email = user?.primaryEmailAddress?.emailAddress || "";
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -52,8 +59,8 @@ export default function MyShopList() {
           <Building2 className="w-6 h-6" />
           Mes boutiques
         </h2>
-        <button 
-          onClick={() => setShowCreateModal(true)} 
+        <button
+          onClick={() => setShowCreateModal(true)}
           className="btn btn-primary gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -81,9 +88,9 @@ export default function MyShopList() {
               </div>
             </div>
           ) : (
-            shops.map(shop => (
-              <div 
-                key={shop.id} 
+            shops.map((shop) => (
+              <div
+                key={shop.id}
                 className="card bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="p-5">
@@ -93,7 +100,7 @@ export default function MyShopList() {
                       {shop.ninea}
                     </span>
                   </div>
-                  
+
                   <div className="space-y-3 mt-4 text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <span>{shop.address || "Non renseignée"}</span>
@@ -105,14 +112,14 @@ export default function MyShopList() {
                 </div>
 
                 <div className="bg-gray-50 px-5 py-3 flex justify-end gap-2 border-t border-gray-200">
-                  <button 
+                  <button
                     className="btn btn-sm btn-ghost text-gray-600 hover:text-primary"
                     onClick={() => setEditingShopId(shop.id)}
                   >
                     <Edit className="w-4 h-4" />
                     Modifier
                   </button>
-                  <button 
+                  <button
                     className="btn btn-sm btn-ghost text-gray-600 hover:text-error"
                     onClick={() => handleDelete(shop.id)}
                   >
@@ -129,16 +136,16 @@ export default function MyShopList() {
       {/* Modal création */}
       <dialog open={showCreateModal} className="modal">
         <div className="modal-box max-w-2xl">
-          <button 
-            onClick={() => setShowCreateModal(false)} 
+          <button
+            onClick={() => setShowCreateModal(false)}
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
           >✕</button>
           <ShopModalForm
             userEmail={email}
             mode="create"
             onSuccess={() => {
-              setShowCreateModal(false)
-              window.location.reload()
+              setShowCreateModal(false);
+              window.location.reload();
             }}
             onClose={() => setShowCreateModal(false)}
           />
@@ -148,8 +155,8 @@ export default function MyShopList() {
       {/* Modal édition */}
       <dialog open={!!editingShopId} className="modal">
         <div className="modal-box max-w-2xl">
-          <button 
-            onClick={() => setEditingShopId(null)} 
+          <button
+            onClick={() => setEditingShopId(null)}
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
           >✕</button>
           {editingShopId && (
@@ -158,8 +165,8 @@ export default function MyShopList() {
               mode="edit"
               shopId={editingShopId}
               onSuccess={() => {
-                setEditingShopId(null)
-                window.location.reload()
+                setEditingShopId(null);
+                window.location.reload();
               }}
               onClose={() => setEditingShopId(null)}
             />
@@ -167,5 +174,5 @@ export default function MyShopList() {
         </div>
       </dialog>
     </div>
-  )
+  );
 }
