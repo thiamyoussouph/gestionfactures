@@ -11,7 +11,16 @@ import { Save, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-const Page = ({ params }: { params: { invoiceId: string } }) => {
+// ✅ Type pour les props de page dynamique
+type PageProps = {
+  params: {
+    invoiceId: string;
+  };
+};
+
+const Page = ({ params }: PageProps) => {
+  // ... reste du code identique
+
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [initialInvoice, setInitialInvoice] = useState<Invoice | null>(null);
   const [totals, setTotals] = useState<Totals | null>(null);
